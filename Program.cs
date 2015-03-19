@@ -44,7 +44,14 @@ namespace XmlValidator
                 set.Add(s);
             }
 
-            set.Compile();
+            try
+            {
+                set.Compile();
+            }
+            catch (XmlSchemaException ex)
+            {
+                WriteError(ex);
+            }
 
             var settings = new XmlReaderSettings();
             settings.Schemas = set;
@@ -60,6 +67,10 @@ namespace XmlValidator
                     var reader = XmlReader.Create(xmlFile, settings);
                     while (reader.Read()) ;
                 }
+                catch (XmlSchemaValidationException ex)
+                {
+                    WriteError(ex);
+                }
                 catch (XmlException ex)
                 {
                     WriteError(ex.LineNumber, ex.LinePosition, ex.Message, ex.SourceUri, XmlSeverityType.Error);
@@ -69,8 +80,12 @@ namespace XmlValidator
 
         static void ValidationEventHandler(object sender, ValidationEventArgs e)
         {
-            var ex = e.Exception;
-            WriteError(ex.LineNumber, ex.LinePosition, e.Message, ex.SourceUri, e.Severity);
+            WriteError(e.Exception, e.Severity);
+        }
+
+        static void WriteError(XmlSchemaException ex, XmlSeverityType severity = XmlSeverityType.Error)
+        {
+            WriteError(ex.LineNumber, ex.LinePosition, ex.Message, ex.SourceUri, severity);
         }
 
         static void WriteError(int line, int col, string message, string uri, XmlSeverityType severity)
