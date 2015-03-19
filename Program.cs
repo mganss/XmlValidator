@@ -20,7 +20,7 @@ namespace XmlValidator
 
             var options = new OptionSet {
                 { "h|help", "show this message and exit", v => showHelp = v != null },
-                { "s|schema=", @"XML Schema to validate against (may contain globs).", v => schemaFiles.Add(v) },
+                { "s|schema=", @"XML Schemas to validate against (may contain globs, may occur more than once for multiple schemas).", v => schemaFiles.Add(v) },
                 { "w|warn", "also report warnings", v => warn = v != null }
             };
 
