@@ -16,10 +16,12 @@ namespace XmlValidator
         {
             var showHelp = false;
             var schemaFiles = new List<string>();
+            var warn = false;
 
             var options = new OptionSet {
                 { "h|help", "show this message and exit", v => showHelp = v != null },
                 { "s|schema=", @"XML Schema to validate against (may contain globs).", v => schemaFiles.Add(v) },
+                { "w|warn", "also report warnings", v => warn = v != null }
             };
 
             var xmlFiles = options.Parse(args);
@@ -34,7 +36,7 @@ namespace XmlValidator
 
             var set = new XmlSchemaSet();
 
-            var schemas = schemaFiles.Select(f => XmlSchema.Read(XmlReader.Create(f, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore }), 
+            var schemas = schemaFiles.Select(f => XmlSchema.Read(XmlReader.Create(f, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore }),
                 ValidationEventHandler));
 
             foreach (var s in schemas)
@@ -48,6 +50,8 @@ namespace XmlValidator
             settings.Schemas = set;
             settings.ValidationType = ValidationType.Schema;
             settings.ValidationEventHandler += ValidationEventHandler;
+            if (warn)
+                settings.ValidationFlags |= XmlSchemaValidationFlags.ReportValidationWarnings;
 
             foreach (var xmlFile in xmlFiles.SelectMany(f => Glob.Glob.ExpandNames(f)))
             {
