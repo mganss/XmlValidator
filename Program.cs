@@ -51,21 +51,33 @@ namespace XmlValidator
 
             foreach (var xmlFile in xmlFiles.SelectMany(f => Glob.Glob.ExpandNames(f)))
             {
-                var reader = XmlReader.Create(xmlFile, settings);
-                while (reader.Read()) ;
+                try
+                {
+                    var reader = XmlReader.Create(xmlFile, settings);
+                    while (reader.Read()) ;
+                }
+                catch (XmlException ex)
+                {
+                    WriteError(ex.LineNumber, ex.LinePosition, ex.Message, ex.SourceUri, XmlSeverityType.Error);
+                }
             }
         }
 
         static void ValidationEventHandler(object sender, ValidationEventArgs e)
         {
+            var ex = e.Exception;
+            WriteError(ex.LineNumber, ex.LinePosition, e.Message, ex.SourceUri, e.Severity);
+        }
+
+        static void WriteError(int line, int col, string message, string uri, XmlSeverityType severity)
+        {
             var color = Console.ForegroundColor;
 
             try
             {
-                var ex = e.Exception;
-                var file = new Uri(ex.SourceUri).LocalPath;
-                var msg = string.Format("{3}: Line {0}, Column {1}: {2}", ex.LineNumber, ex.LinePosition, e.Message, file);
-                if (e.Severity == XmlSeverityType.Warning)
+                var file = new Uri(uri).LocalPath;
+                var msg = string.Format("{3}: Line {0}, Column {1}: {2}", line, col, message, file);
+                if (severity == XmlSeverityType.Warning)
                 {
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.Error.WriteLine("Warning: " + msg);
