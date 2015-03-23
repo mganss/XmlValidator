@@ -12,7 +12,9 @@ namespace XmlValidator
 {
     class Program
     {
-        static void Main(string[] args)
+        private static int Result = 0;
+
+        static int Main(string[] args)
         {
             var showHelp = false;
             var schemaFiles = new List<string>();
@@ -29,7 +31,7 @@ namespace XmlValidator
             if (showHelp)
             {
                 ShowHelp(options);
-                return;
+                return 0;
             }
 
             schemaFiles = schemaFiles.SelectMany(f => Glob.Glob.ExpandNames(f)).ToList();
@@ -76,6 +78,8 @@ namespace XmlValidator
                     WriteError(ex.LineNumber, ex.LinePosition, ex.Message, ex.SourceUri, XmlSeverityType.Error);
                 }
             }
+
+            return Result;
         }
 
         static void ValidationEventHandler(object sender, ValidationEventArgs e)
@@ -94,6 +98,8 @@ namespace XmlValidator
 
             try
             {
+                if (Result < int.MaxValue) Result++;
+
                 var file = new Uri(uri).LocalPath;
                 var msg = string.Format("{3}: Line {0}, Column {1}: {2}", line, col, message, file);
                 if (severity == XmlSeverityType.Warning)
